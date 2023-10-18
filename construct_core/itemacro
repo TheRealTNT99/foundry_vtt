@@ -1,0 +1,34 @@
+// console.log(args[0]);
+let effect_A;
+let effect_C;
+let dae_effect = async function() {
+    const effect_name = "Experimental Core (Cooldown)";
+    let effects = args[0].actor.effects.entries();
+    // console.log(effects);
+    for (let effect of effects) {    // searching for the Overclock effect
+        let effect_name = effect[1].name;
+        let effect_id = effect[0];
+        // console.log(effect_name);
+        if (effect_name === "Clockwork Overdrive") {
+            effect_A = effect[1] ?? "effect[1] corrupt...";
+        } else if (effect_name === "Experimental Core (Cooldown)") {
+            effect_C = effect[1];
+        }
+    };
+    // console.log(effect_A);
+    Hooks.on("deleteActiveEffect", (effectDoc, object, id) => {
+        if (effectDoc.name !== "Clockwork Overdrive") {return true}
+        else {
+            // console.log("Hook successfully fired!")
+            let effect_C_duration = (effectDoc.duration.duration - effectDoc.duration.remaining) * 2;
+            let effect_C_start = effectDoc.duration._combatTime;
+            // console.log(effect_C_duration)
+            if (effect_C_duration > 0) {
+                args[0].actor.updateEmbeddedDocuments("ActiveEffect", [{"_id": effect_C.id, "disabled" : false, "duration": {rounds: effect_C_duration, startRound: effect_C_start}}])
+            } else {
+                args[0].actor.deleteEmbeddedDocuments("ActiveEffect", [effect_C.id]);
+            };
+        };
+    });
+};
+dae_effect();
